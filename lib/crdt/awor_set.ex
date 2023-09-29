@@ -42,9 +42,10 @@ defmodule CRDT.AWORSet do
   @spec add(t, actor, value) :: t
   def add(%__MODULE__{dot_kernel: dot_kernel}, actor, value) do
     %__MODULE__{
-      dot_kernel: dot_kernel
-      |> CRDT.DotKernel.remove(value)
-      |> CRDT.DotKernel.add(actor, value)
+      dot_kernel:
+        dot_kernel
+        |> CRDT.DotKernel.remove(value)
+        |> CRDT.DotKernel.add(actor, value)
     }
   end
 
@@ -66,44 +67,46 @@ defmodule CRDT.AWORSet do
     %__MODULE__{dot_kernel: CRDT.DotKernel.remove(dot_kernel, value)}
   end
 
-  @doc """
-  Returns member values.
+  defimpl CRDT do
+    @doc """
+    Returns member values.
 
-  ## Examples:
+    ## Examples:
 
-      iex> CRDT.AWORSet.new() |> CRDT.AWORSet.add(:a, "value") |> CRDT.AWORSet.value()
-      ["value"]
-  """
-  @spec value(t) :: list
-  def value(%__MODULE__{dot_kernel: dot_kernel}) do
-    CRDT.DotKernel.values(dot_kernel)
-  end
+        iex> CRDT.AWORSet.new()
+        ...> |> CRDT.AWORSet.add(:a, "value")
+        ...> |> CRDT.value()
+        ["value"]
+    """
+    def value(%CRDT.AWORSet{dot_kernel: dot_kernel}) do
+      CRDT.DotKernel.values(dot_kernel) |> Enum.uniq()
+    end
 
-  @doc """
-  Merges two AWORSets.
+    @doc """
+    Merges two AWORSets.
 
-  ## Examples:
+    ## Examples:
 
-      iex> CRDT.AWORSet.new()
-      ...> |> CRDT.AWORSet.add(:a, "value1")
-      ...> |> CRDT.AWORSet.merge(
-      ...>   CRDT.AWORSet.new()
-      ...>   |> CRDT.AWORSet.add(:b, "value2")
-      ...> )
-      %CRDT.AWORSet{
-        dot_kernel: %CRDT.DotKernel{
-          dot_context: %CRDT.DotContext{version_vector: %{a: 1, b: 1}, dot_cloud: []},
-          entries: %{{:a, 1} => "value1", {:b, 1} => "value2"}
+        iex> CRDT.AWORSet.new()
+        ...> |> CRDT.AWORSet.add(:a, "value1")
+        ...> |> CRDT.merge(
+        ...>   CRDT.AWORSet.new()
+        ...>   |> CRDT.AWORSet.add(:b, "value2")
+        ...> )
+        %CRDT.AWORSet{
+          dot_kernel: %CRDT.DotKernel{
+            dot_context: %CRDT.DotContext{version_vector: %{a: 1, b: 1}, dot_cloud: []},
+            entries: %{{:a, 1} => "value1", {:b, 1} => "value2"}
+          }
         }
+    """
+    def merge(
+          %CRDT.AWORSet{dot_kernel: dot_kernel_a},
+          %CRDT.AWORSet{dot_kernel: dot_kernel_b}
+        ) do
+      %CRDT.AWORSet{
+        dot_kernel: CRDT.DotKernel.merge(dot_kernel_a, dot_kernel_b)
       }
-  """
-  @spec merge(t, t) :: t
-  def merge(
-        %__MODULE__{dot_kernel: dot_kernel_a},
-        %__MODULE__{dot_kernel: dot_kernel_b}
-      ) do
-    %__MODULE__{
-      dot_kernel: CRDT.DotKernel.merge(dot_kernel_a, dot_kernel_b)
-    }
+    end
   end
 end

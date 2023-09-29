@@ -120,6 +120,8 @@ defmodule CRDT.DotKernel do
     entries =
       for {dot, entry_value} <- entries, entry_value == value, reduce: entries do
         entries ->
+          # The corresponding dot says in the dot context and acts as a tombstone.
+          # So we can avoid readding it when merging with an out of date replica.
           Map.delete(entries, dot)
       end
 
@@ -194,6 +196,7 @@ defmodule CRDT.DotKernel do
     entries =
       for {dot, value} <- entries_b, reduce: entries_a do
         entries ->
+          # Add unseen entries from b, unless there's a tombstone in the dot_context.
           if not (Map.has_key?(entries, dot) or CRDT.DotContext.contains?(dot_context_a, dot)) do
             Map.put(entries, dot, value)
           else
@@ -205,6 +208,7 @@ defmodule CRDT.DotKernel do
       for {dot, _value} <- entries_a, reduce: entries do
         entries ->
           if CRDT.DotContext.contains?(dot_context_b, dot) and not Map.has_key?(entries_b, dot) do
+            # Remove entries that were deleted in b.
             Map.delete(entries, dot)
           else
             entries

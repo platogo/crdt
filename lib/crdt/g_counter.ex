@@ -38,37 +38,42 @@ defmodule CRDT.GCounter do
 
   ## Examples
 
-      iex> CRDT.GCounter.new() |> CRDT.GCounter.inc(:a, 1) |> CRDT.GCounter.inc(:b, 2)
+      iex> CRDT.GCounter.new()
+      ...> |> CRDT.GCounter.inc(:a)
+      ...> |> CRDT.GCounter.inc(:b, 2)
       %CRDT.GCounter{value: %{a: 1, b: 2}}
   """
   @spec inc(t, actor, non_neg_integer) :: t
-  def inc(%__MODULE__{value: value}, actor, amount) do
+  def inc(%__MODULE__{value: value}, actor, amount \\ 1) do
     %__MODULE__{value: Map.update(value, actor, amount, &(&1 + amount))}
   end
 
-  @doc """
-  Returns the value of the counter.
+  defimpl CRDT do
+    @doc """
+    Returns the value of the counter.
 
-  ## Examples
+    ## Examples
 
-      iex> CRDT.GCounter.new() |> CRDT.GCounter.inc(:a, 1) |> CRDT.GCounter.inc(:b, 2) |> CRDT.GCounter.value()
-      3
-  """
-  @spec value(t) :: non_neg_integer
-  def value(%__MODULE__{value: value}) do
-    Map.values(value) |> Enum.sum()
-  end
+        iex> CRDT.GCounter.new()
+        ...> |> CRDT.GCounter.inc(:a, 1)
+        ...> |> CRDT.GCounter.inc(:b, 2)
+        ...> |> CRDT.value()
+        3
+    """
+    def value(%CRDT.GCounter{value: value}) do
+      Map.values(value) |> Enum.sum()
+    end
 
-  @doc """
-  Merges two Growning-only counters.
+    @doc """
+    Merges two Growning-only counters.
 
-  ## Examples
+    ## Examples
 
-      iex> CRDT.GCounter.merge(CRDT.GCounter.new(a: 1, b: 2), CRDT.GCounter.new(a: 2, c: 3))
-      %CRDT.GCounter{value: %{a: 2, b: 2, c: 3}}
-  """
-  @spec merge(t, t) :: t
-  def merge(%__MODULE__{value: value1}, %__MODULE__{value: value2}) do
-    %__MODULE__{value: Map.merge(value1, value2, fn _k, v1, v2 -> max(v1, v2) end)}
+        iex> CRDT.merge(CRDT.GCounter.new(a: 1, b: 2), CRDT.GCounter.new(a: 2, c: 3))
+        %CRDT.GCounter{value: %{a: 2, b: 2, c: 3}}
+    """
+    def merge(%CRDT.GCounter{value: value1}, %CRDT.GCounter{value: value2}) do
+      %CRDT.GCounter{value: Map.merge(value1, value2, fn _k, v1, v2 -> max(v1, v2) end)}
+    end
   end
 end
