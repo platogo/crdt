@@ -36,9 +36,6 @@ defmodule CRDT.AWORMap do
 
   ## Examples:
 
-      iex> CRDT.AWORMap.new() |> CRDT.AWORMap.put(:a, :key, "value")
-      ** (Protocol.UndefinedError) protocol CRDT not implemented for \"value\" of type BitString. This protocol is implemented for the following type(s): CRDT.AWORMap, CRDT.AWORSet, CRDT.GCounter
-
       iex> CRDT.AWORMap.new() |> CRDT.AWORMap.put(:a, :key, CRDT.GCounter.new())
       %CRDT.AWORMap{
         keys: %CRDT.AWORSet{
