@@ -169,6 +169,46 @@ defmodule CRDT.AWORMap do
     put(awor_map, actor, key, fun.(crdt))
   end
 
+  @doc """
+  Updates the `key` in the AWORMap with the the given function to the crdt on behalf of `actor`.
+
+  ## Examples:
+
+      iex> CRDT.AWORMap.new()
+      ...> |> CRDT.AWORMap.put(:actor, :key_a, CRDT.AWORMap.new() |> CRDT.AWORMap.put(:actor, :key_b, CRDT.GCounter.new(a: 1)))
+      ...> |> CRDT.AWORMap.update_in(:actor, [:key_a, :key_b], &(CRDT.GCounter.inc(&1, :a)))
+      ...> |> CRDT.value()
+      %{key_a: %{key_b: 2}}
+
+      iex> CRDT.AWORMap.new()
+      ...> |> CRDT.AWORMap.update_in(:actor, [:key_a, :key_b], &(CRDT.GCounter.inc(&1, :a)))
+      ** (KeyError) key :key_a not found in: %{}
+
+      iex> CRDT.AWORMap.new()
+      ...> |> CRDT.AWORMap.put(:actor, :key_a, CRDT.AWORMap.new())
+      ...> |> CRDT.AWORMap.update_in(:actor, [:key_a, :key_b], &(CRDT.GCounter.inc(&1, :a)))
+      ** (KeyError) key :key_b not found in: %{}
+
+      iex> CRDT.AWORMap.new()
+      ...> |> CRDT.AWORMap.put(:actor, :key_a, CRDT.AWORMap.new() |> CRDT.AWORMap.put(:actor, :key_b, CRDT.GCounter.new(a: 1)))
+      ...> |> CRDT.AWORMap.update_in(:actor, [:key_a, :key_b], :fail)
+      ...> |> CRDT.value()
+      ** (FunctionClauseError) no function clause matching in CRDT.AWORMap.update_in/4
+
+      iex> CRDT.AWORMap.new()
+      ...> |> CRDT.AWORMap.put(:actor, :key_a, CRDT.AWORMap.new() |> CRDT.AWORMap.put(:actor, :key_b, CRDT.GCounter.new(a: 1)))
+      ...> |> CRDT.AWORMap.update_in(:actor, :key_a, &(CRDT.AWORMap.put(&1, :actor, :key_b, CRDT.GCounter.new(a: 1, b: 2))))
+      ...> |> CRDT.value()
+      ** (FunctionClauseError) no function clause matching in CRDT.AWORMap.update_in/4
+
+  """
+  def update_in(%module{entries: _entries} = map, actor, [head], fun) when is_function(fun, 1),
+    do: module.update!(map, actor, head, fun)
+
+  def update_in(%module{entries: _entries} = map, actor, [head | tail], fun)
+      when is_function(fun, 1),
+      do: module.update!(map, actor, head, &update_in(&1, actor, tail, fun))
+
   defimpl CRDT do
     @doc """
     Returns the map value.
