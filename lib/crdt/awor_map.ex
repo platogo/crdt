@@ -168,125 +168,195 @@ defmodule CRDT.AWORMap do
 
     put(awor_map, actor, key, fun.(crdt))
   end
+end
 
+defimpl CRDT.Access, for: CRDT.AWORMap do
   @doc """
-  Updates the `key` in the AWORMap with the the given function to the crdt on behalf of `actor`.
+  Retrieves the value by recursively following the list of keys in a nested AWORMap.
 
   ## Examples:
 
       iex> CRDT.AWORMap.new()
-      ...> |> CRDT.AWORMap.put(:actor, :key_a, CRDT.AWORMap.new() |> CRDT.AWORMap.put(:actor, :key_b, CRDT.GCounter.new(a: 1)))
-      ...> |> CRDT.AWORMap.update_in(:actor, [:key_a, :key_b], &(CRDT.GCounter.inc(&1, :a)))
+      ...> |> CRDT.AWORMap.put(:actor, :key_a,
+      ...>   CRDT.AWORMap.new() |> CRDT.AWORMap.put(
+      ...>     :actor, :key_b, CRDT.GCounter.new(a: 1)))
+      ...> |> CRDT.Access.get_in([:key_a, :key_b])
+      %CRDT.GCounter{value: %{a: 1}}
+
+      iex> CRDT.AWORMap.new()
+      ...> |> CRDT.Access.get_in([:key_a, :key_b])
+      ** (KeyError) key :key_a not found in: %{}
+
+  """
+  @spec get_in(CRDT.AWORMap.t(), nonempty_list(term), CRDT.crdt() | nil) :: CRDT.crdt() | nil
+  def get_in(map, list, default \\ nil)
+
+  def get_in(map, [head], default),
+    do: CRDT.AWORMap.get(map, head, default)
+
+  def get_in(map, [head | tail], default),
+    do: get_in(CRDT.AWORMap.fetch!(map, head), tail, default)
+
+  @doc """
+  Updates the value by recursively following the list of keys in a nested AWORMap
+  with the given crdt on behalf of `actor`.
+
+  ## Examples:
+
+      iex> CRDT.AWORMap.new()
+      ...> |> CRDT.AWORMap.put(:actor, :key_a,
+      ...>   CRDT.AWORMap.new() |> CRDT.AWORMap.put(
+      ...>     :actor, :key_b, CRDT.GCounter.new(a: 1)))
+      ...> |> CRDT.Access.put_in(:actor, [:key_a, :key_b],
+      ...>     CRDT.GCounter.new(a: 1, b: 2))
+      ...> |> CRDT.value()
+      %{key_a: %{key_b: 3}}
+
+      iex> CRDT.AWORMap.new()
+      ...> |> CRDT.Access.put_in(:actor, [:key_a, :key_b],
+      ...>     CRDT.GCounter.new(a: 1, b: 2))
+      ** (KeyError) key :key_a not found in: %{}
+
+  """
+  @spec put_in(CRDT.AWORMap.t(), CRDT.actor(), list, CRDT.crdt()) :: CRDT.crdt()
+  def put_in(map, actor, [head], crdt),
+    do: CRDT.AWORMap.put(map, actor, head, crdt)
+
+  def put_in(%module{entries: _entries} = map, actor, [head | tail], crdt),
+    do: CRDT.AWORMap.put(map, actor, head, put_in(module.fetch!(map, head), actor, tail, crdt))
+
+  @doc """
+  Updates the key by recursively following the list of keys in the nested AWORMap
+  with the the given function to the crdt on behalf of `actor`.
+
+  ## Examples:
+
+      iex> CRDT.AWORMap.new()
+      ...> |> CRDT.AWORMap.put(:actor, :key_a,
+      ...>   CRDT.AWORMap.new() |> CRDT.AWORMap.put(
+      ...>     :actor, :key_b, CRDT.GCounter.new(a: 1)))
+      ...> |> CRDT.Access.update_in(:actor, [:key_a, :key_b],
+      ...>     &(CRDT.GCounter.inc(&1, :a)))
       ...> |> CRDT.value()
       %{key_a: %{key_b: 2}}
 
       iex> CRDT.AWORMap.new()
-      ...> |> CRDT.AWORMap.update_in(:actor, [:key_a, :key_b], &(CRDT.GCounter.inc(&1, :a)))
+      ...> |> CRDT.Access.update_in(:actor, [:key_a, :key_b],
+      ...>     &(CRDT.GCounter.inc(&1, :a)))
       ** (KeyError) key :key_a not found in: %{}
 
       iex> CRDT.AWORMap.new()
       ...> |> CRDT.AWORMap.put(:actor, :key_a, CRDT.AWORMap.new())
-      ...> |> CRDT.AWORMap.update_in(:actor, [:key_a, :key_b], &(CRDT.GCounter.inc(&1, :a)))
+      ...> |> CRDT.Access.update_in(:actor, [:key_a, :key_b],
+      ...>     &(CRDT.GCounter.inc(&1, :a)))
       ** (KeyError) key :key_b not found in: %{}
 
       iex> CRDT.AWORMap.new()
-      ...> |> CRDT.AWORMap.put(:actor, :key_a, CRDT.AWORMap.new() |> CRDT.AWORMap.put(:actor, :key_b, CRDT.GCounter.new(a: 1)))
-      ...> |> CRDT.AWORMap.update_in(:actor, [:key_a, :key_b], :fail)
+      ...> |> CRDT.AWORMap.put(:actor, :key_a,
+      ...>     CRDT.AWORMap.new()
+      ...>     |> CRDT.AWORMap.put(:actor, :key_b,
+      ...>       CRDT.GCounter.new(a: 1)))
+      ...> |> CRDT.Access.update_in(:actor, [:key_a, :key_b], :fail)
       ...> |> CRDT.value()
-      ** (FunctionClauseError) no function clause matching in CRDT.AWORMap.update_in/4
+      ** (FunctionClauseError) no function clause matching in CRDT.Access.CRDT.AWORMap.update_in/4
 
       iex> CRDT.AWORMap.new()
-      ...> |> CRDT.AWORMap.put(:actor, :key_a, CRDT.AWORMap.new() |> CRDT.AWORMap.put(:actor, :key_b, CRDT.GCounter.new(a: 1)))
-      ...> |> CRDT.AWORMap.update_in(:actor, :key_a, &(CRDT.AWORMap.put(&1, :actor, :key_b, CRDT.GCounter.new(a: 1, b: 2))))
+      ...> |> CRDT.AWORMap.put(:actor, :key_a,
+      ...>   CRDT.AWORMap.new()
+      ...>   |> CRDT.AWORMap.put(:actor, :key_b, CRDT.GCounter.new(a: 1)))
+      ...> |> CRDT.Access.update_in(:actor, :key_a,
+      ...>   &(CRDT.AWORMap.put(&1, :actor, :key_b, CRDT.GCounter.new(a: 1, b: 2))))
       ...> |> CRDT.value()
-      ** (FunctionClauseError) no function clause matching in CRDT.AWORMap.update_in/4
+      ** (FunctionClauseError) no function clause matching in CRDT.Access.CRDT.AWORMap.update_in/4
 
   """
-  def update_in(%module{entries: _entries} = map, actor, [head], fun) when is_function(fun, 1),
-    do: module.update!(map, actor, head, fun)
+  @spec update_in(CRDT.AWORMap.t(), CRDT.actor(), list, (CRDT.crdt() -> CRDT.crdt())) ::
+          CRDT.AWORMap.t()
+  def update_in(map, actor, [head], fun) when is_function(fun, 1),
+    do: CRDT.AWORMap.update!(map, actor, head, fun)
 
-  def update_in(%module{entries: _entries} = map, actor, [head | tail], fun)
+  def update_in(map, actor, [head | tail], fun)
       when is_function(fun, 1),
-      do: module.update!(map, actor, head, &update_in(&1, actor, tail, fun))
+      do: CRDT.AWORMap.update!(map, actor, head, &update_in(&1, actor, tail, fun))
+end
 
-  defimpl CRDT do
-    @doc """
-    Returns the map value.
+defimpl CRDT, for: CRDT.AWORMap do
+  @doc """
+  Returns the map value.
 
-    ## Examples:
+  ## Examples:
 
-        iex> CRDT.AWORMap.new()
-        ...> |> CRDT.AWORMap.put(:a, :counter, CRDT.GCounter.new(a: 1, b: 2))
-        ...> |> CRDT.AWORMap.put(
-        ...>   :a,
-        ...>   :map,
-        ...>   CRDT.AWORMap.new() |> CRDT.AWORMap.put(:a, :key, CRDT.GCounter.new())
-        ...> )
-        ...> |> CRDT.value()
-        %{counter: 3, map: %{key: 0}}
-    """
-    def value(%CRDT.AWORMap{entries: entries}) do
-      for {key, crdt} <- entries, into: %{} do
-        {
-          key,
-          if CRDT.impl_for(crdt) do
-            CRDT.value(crdt)
-          else
-            crdt
-          end
-        }
-      end
-    end
-
-    @doc """
-    Merges two AWORMaps.
-
-    ## Examples:
-
-        iex> CRDT.merge(
-        ...>   CRDT.AWORMap.new()
-        ...>   |> CRDT.AWORMap.put(:a, :counter, CRDT.GCounter.new(a: 1)),
-        ...>   CRDT.AWORMap.new()
-        ...>   |> CRDT.AWORMap.put(:b, :counter, CRDT.GCounter.new(b: 2))
-        ...> )
-        %CRDT.AWORMap{
-          keys: %CRDT.AWORSet{
-            dot_kernel: %CRDT.DotKernel{
-              dot_context: %CRDT.DotContext{
-                version_vector: %{a: 1, b: 1},
-                dot_cloud: []
-              },
-              entries: %{{:a, 1} => :counter, {:b, 1} => :counter}
-            }
-          },
-          entries: %{counter: %CRDT.GCounter{value: %{a: 1, b: 2}}}
-        }
-    """
-    def merge(
-          %CRDT.AWORMap{keys: keys_a, entries: entries_a},
-          %CRDT.AWORMap{keys: keys_b, entries: entries_b}
-        ) do
-      keys = CRDT.merge(keys_a, keys_b)
-
-      entries =
-        for key <- CRDT.value(keys), reduce: %{} do
-          entries ->
-            case {entries_a, entries_b} do
-              {%{^key => crdt_a}, %{^key => crdt_b}} ->
-                Map.put(entries, key, CRDT.merge(crdt_a, crdt_b))
-
-              {%{^key => crdt_a}, %{}} ->
-                Map.put(entries, key, crdt_a)
-
-              {%{}, %{^key => crdt_b}} ->
-                Map.put(entries, key, crdt_b)
-
-              {%{}, %{}} ->
-                entries
-            end
+      iex> CRDT.AWORMap.new()
+      ...> |> CRDT.AWORMap.put(:a, :counter, CRDT.GCounter.new(a: 1, b: 2))
+      ...> |> CRDT.AWORMap.put(
+      ...>   :a,
+      ...>   :map,
+      ...>   CRDT.AWORMap.new() |> CRDT.AWORMap.put(:a, :key, CRDT.GCounter.new())
+      ...> )
+      ...> |> CRDT.value()
+      %{counter: 3, map: %{key: 0}}
+  """
+  def value(%CRDT.AWORMap{entries: entries}) do
+    for {key, crdt} <- entries, into: %{} do
+      {
+        key,
+        if CRDT.impl_for(crdt) do
+          CRDT.value(crdt)
+        else
+          crdt
         end
-
-      %CRDT.AWORMap{keys: keys, entries: entries}
+      }
     end
+  end
+
+  @doc """
+  Merges two AWORMaps.
+
+  ## Examples:
+
+      iex> CRDT.merge(
+      ...>   CRDT.AWORMap.new()
+      ...>   |> CRDT.AWORMap.put(:a, :counter, CRDT.GCounter.new(a: 1)),
+      ...>   CRDT.AWORMap.new()
+      ...>   |> CRDT.AWORMap.put(:b, :counter, CRDT.GCounter.new(b: 2))
+      ...> )
+      %CRDT.AWORMap{
+        keys: %CRDT.AWORSet{
+          dot_kernel: %CRDT.DotKernel{
+            dot_context: %CRDT.DotContext{
+              version_vector: %{a: 1, b: 1},
+              dot_cloud: []
+            },
+            entries: %{{:a, 1} => :counter, {:b, 1} => :counter}
+          }
+        },
+        entries: %{counter: %CRDT.GCounter{value: %{a: 1, b: 2}}}
+      }
+  """
+  def merge(
+        %CRDT.AWORMap{keys: keys_a, entries: entries_a},
+        %CRDT.AWORMap{keys: keys_b, entries: entries_b}
+      ) do
+    keys = CRDT.merge(keys_a, keys_b)
+
+    entries =
+      for key <- CRDT.value(keys), reduce: %{} do
+        entries ->
+          case {entries_a, entries_b} do
+            {%{^key => crdt_a}, %{^key => crdt_b}} ->
+              Map.put(entries, key, CRDT.merge(crdt_a, crdt_b))
+
+            {%{^key => crdt_a}, %{}} ->
+              Map.put(entries, key, crdt_a)
+
+            {%{}, %{^key => crdt_b}} ->
+              Map.put(entries, key, crdt_b)
+
+            {%{}, %{}} ->
+              entries
+          end
+      end
+
+    %CRDT.AWORMap{keys: keys, entries: entries}
   end
 end
