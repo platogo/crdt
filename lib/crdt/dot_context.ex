@@ -36,10 +36,12 @@ defmodule CRDT.DotContext do
         %__MODULE__{version_vector: version_vector, dot_cloud: dot_cloud},
         {actor, version} = dot
       ) do
-    with %{^actor => maximum_version} when version <= maximum_version <- version_vector do
-      true
-    else
-      _ -> Enum.any?(dot_cloud, &(&1 == dot))
+    case version_vector do
+      %{^actor => maximum_version} when version <= maximum_version ->
+        true
+
+      _ ->
+        Enum.any?(dot_cloud, &(&1 == dot))
     end
   end
 

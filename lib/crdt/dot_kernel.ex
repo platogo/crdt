@@ -197,10 +197,10 @@ defmodule CRDT.DotKernel do
       for {dot, value} <- entries_b, reduce: entries_a do
         entries ->
           # Add unseen entries from b, unless there's a tombstone in the dot_context.
-          if not (Map.has_key?(entries, dot) or CRDT.DotContext.contains?(dot_context_a, dot)) do
-            Map.put(entries, dot, value)
-          else
+          if Map.has_key?(entries, dot) and CRDT.DotContext.contains?(dot_context_a, dot) do
             entries
+          else
+            Map.put(entries, dot, value)
           end
       end
 
