@@ -300,11 +300,7 @@ defimpl CRDT, for: CRDT.AWORMap do
     for {key, crdt} <- entries, into: %{} do
       {
         key,
-        if CRDT.impl_for(crdt) do
-          CRDT.value(crdt)
-        else
-          crdt
-        end
+        CRDT.value(crdt)
       }
     end
   end
