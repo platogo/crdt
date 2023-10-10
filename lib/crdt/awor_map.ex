@@ -24,7 +24,7 @@ defmodule CRDT.AWORMap do
         entries: %{}
       }
   """
-  @spec new() :: t
+  @spec new() :: t()
   def new, do: %__MODULE__{}
 
   @doc """
@@ -43,7 +43,7 @@ defmodule CRDT.AWORMap do
         entries: %{key: %CRDT.GCounter{}}
       }
   """
-  @spec put(t, CRDT.actor(), CRDT.key(), CRDT.crdt()) :: t
+  @spec put(t(), CRDT.actor(), CRDT.key(), CRDT.crdt()) :: t()
   def put(%__MODULE__{keys: keys, entries: entries}, actor, key, crdt) do
     CRDT.impl_for!(crdt)
 
@@ -63,7 +63,7 @@ defmodule CRDT.AWORMap do
       ...> |> CRDT.AWORMap.fetch(:key)
       {:ok, %CRDT.GCounter{}}
   """
-  @spec fetch(t, CRDT.key()) :: {:ok, CRDT.crdt()} | :error
+  @spec fetch(t(), CRDT.key()) :: {:ok, CRDT.crdt()} | :error
   def fetch(%__MODULE__{entries: entries}, key), do: Map.fetch(entries, key)
 
   @doc """
@@ -82,7 +82,7 @@ defmodule CRDT.AWORMap do
       iex> CRDT.AWORMap.new() |> CRDT.AWORMap.fetch!(:key)
       ** (KeyError) key :key not found in: %{}
   """
-  @spec fetch!(t, CRDT.key()) :: CRDT.crdt()
+  @spec fetch!(t(), CRDT.key()) :: CRDT.crdt()
   def fetch!(%__MODULE__{entries: entries}, key), do: Map.fetch!(entries, key)
 
   @doc """
@@ -98,7 +98,7 @@ defmodule CRDT.AWORMap do
       ...> |> CRDT.AWORMap.get(:key, CRDT.GCounter.new())
       %CRDT.GCounter{}
   """
-  @spec get(t, CRDT.key(), CRDT.crdt()) :: CRDT.crdt()
+  @spec get(t(), CRDT.key(), CRDT.crdt()) :: CRDT.crdt()
   def get(%__MODULE__{entries: entries}, key, default \\ nil), do: Map.get(entries, key, default)
 
   @doc """
@@ -121,7 +121,7 @@ defmodule CRDT.AWORMap do
       ...> |> CRDT.value()
       %{key: 5}
   """
-  @spec update(t, CRDT.actor(), CRDT.key(), CRDT.crdt(), (CRDT.crdt() -> CRDT.crdt())) :: t
+  @spec update(t(), CRDT.actor(), CRDT.key(), CRDT.crdt(), (CRDT.crdt() -> CRDT.crdt())) :: t()
   def update(%__MODULE__{entries: entries} = awor_map, actor, key, default, fun)
       when is_function(fun) do
     CRDT.impl_for!(default)
@@ -157,7 +157,7 @@ defmodule CRDT.AWORMap do
       ...> |> CRDT.value()
       ** (KeyError) key :key not found in: %{}
   """
-  @spec update!(t, CRDT.actor(), CRDT.key(), (CRDT.crdt() -> CRDT.crdt())) :: t
+  @spec update!(t(), CRDT.actor(), CRDT.key(), (CRDT.crdt() -> CRDT.crdt())) :: t()
   def update!(%__MODULE__{entries: entries} = awor_map, actor, key, fun)
       when is_function(fun) do
     crdt = Map.fetch!(entries, key)

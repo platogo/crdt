@@ -8,8 +8,8 @@ defmodule CRDT.LWWRegister do
   """
 
   @type t :: %CRDT.LWWRegister{
-          value: term | nil,
-          timestamp: {pos_integer(), pos_integer(), pos_integer()}
+          value: term() | nil,
+          timestamp: pos_integer()
         }
 
   defstruct value: nil, timestamp: System.system_time()
@@ -25,10 +25,10 @@ defmodule CRDT.LWWRegister do
       %CRDT.LWWRegister{value: "data"}
 
   """
-  @spec new :: t
-  def(new(), do: %CRDT.LWWRegister{})
+  @spec new :: t()
+  def new, do: %CRDT.LWWRegister{}
 
-  @spec new(term) :: t
+  @spec new(term()) :: t()
   def new(data), do: %CRDT.LWWRegister{value: data}
 
   @doc """
@@ -40,9 +40,9 @@ defmodule CRDT.LWWRegister do
       "data"
 
   """
-  @spec set(t, term) :: t
-  def set(register, data) do
-    %CRDT.LWWRegister{register | value: data, timestamp: System.system_time()}
+  @spec set(t(), term()) :: t()
+  def set(_register, data) do
+    %CRDT.LWWRegister{value: data, timestamp: System.system_time()}
   end
 end
 
