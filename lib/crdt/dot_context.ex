@@ -20,7 +20,7 @@ defmodule CRDT.DotContext do
         iex> CRDT.DotContext.new()
         %CRDT.DotContext{version_vector: %{}, dot_cloud: []}
   """
-  @spec new() :: t
+  @spec new() :: t()
   def new, do: %__MODULE__{}
 
   @doc """
@@ -31,7 +31,7 @@ defmodule CRDT.DotContext do
       iex> CRDT.DotContext.new() |> CRDT.DotContext.contains?({:a, 1})
       false
   """
-  @spec contains?(t, dot) :: boolean
+  @spec contains?(t(), dot()) :: boolean
   def contains?(
         %__MODULE__{version_vector: version_vector, dot_cloud: dot_cloud},
         {actor, version} = dot
@@ -53,7 +53,7 @@ defmodule CRDT.DotContext do
       iex> CRDT.DotContext.new() |> CRDT.DotContext.next_dot(:a)
       {{:a, 1}, %CRDT.DotContext{version_vector: %{a: 1}, dot_cloud: []}}
   """
-  @spec next_dot(t, actor) :: {dot, t}
+  @spec next_dot(t(), actor()) :: {dot(), t()}
   def next_dot(%__MODULE__{version_vector: version_vector} = dot_context, actor) do
     version = Map.get(version_vector, actor, 0) + 1
 
@@ -74,7 +74,7 @@ defmodule CRDT.DotContext do
       iex> CRDT.DotContext.new() |> CRDT.DotContext.add({:a, 1})
       %CRDT.DotContext{version_vector: %{}, dot_cloud: [{:a, 1}]}
   """
-  @spec add(t, dot) :: t
+  @spec add(t(), dot()) :: t()
   def add(%__MODULE__{dot_cloud: dot_cloud} = dot_context, dot) do
     %{dot_context | dot_cloud: [dot | dot_cloud]}
   end
@@ -94,7 +94,7 @@ defmodule CRDT.DotContext do
       ...> |> CRDT.DotContext.compress()
       %CRDT.DotContext{version_vector: %{a: 3}, dot_cloud: [{:b, 2}, {:a, 5}]}
   """
-  @spec compress(t) :: t
+  @spec compress(t()) :: t()
   def compress(%__MODULE__{version_vector: version_vector, dot_cloud: dot_cloud}) do
     {version_vector, dot_cloud} =
       for {actor, version} = dot <- Enum.sort(dot_cloud), reduce: {version_vector, []} do
@@ -135,7 +135,7 @@ defmodule CRDT.DotContext do
       ...> )
       %CRDT.DotContext{version_vector: %{a: 5}, dot_cloud: [{:b, 2}, {:a, 7}]}
   """
-  @spec merge(t, t) :: t
+  @spec merge(t(), t()) :: t()
   def merge(
         %__MODULE__{version_vector: version_vector_a, dot_cloud: dot_cloud_a},
         %__MODULE__{version_vector: version_vector_b, dot_cloud: dot_cloud_b}

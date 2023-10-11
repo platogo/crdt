@@ -28,7 +28,7 @@ defmodule CRDT.DeltaAWORSet do
         }
       }
   """
-  @spec new() :: t
+  @spec new() :: t()
   def new, do: %__MODULE__{}
 
   @doc """
@@ -48,7 +48,7 @@ defmodule CRDT.DeltaAWORSet do
         }
       }
   """
-  @spec add(t, actor, value) :: t
+  @spec add(t(), actor(), value()) :: t()
   def add(%__MODULE__{dot_kernel: dot_kernel, delta: delta}, actor, value) do
     {dot_kernel, delta} =
       {dot_kernel, delta}
@@ -75,7 +75,7 @@ defmodule CRDT.DeltaAWORSet do
         }
       }
   """
-  @spec remove(t, value) :: t
+  @spec remove(t(), value()) :: t()
   def remove(%__MODULE__{dot_kernel: dot_kernel, delta: delta}, value) do
     {dot_kernel, delta} =
       {dot_kernel, delta}
@@ -92,7 +92,7 @@ defmodule CRDT.DeltaAWORSet do
       iex> CRDT.DeltaAWORSet.new() |> CRDT.DeltaAWORSet.add(:a, "value") |> CRDT.DeltaAWORSet.value()
       ["value"]
   """
-  @spec value(t) :: list
+  @spec value(t()) :: list()
   def value(%__MODULE__{dot_kernel: dot_kernel}) do
     CRDT.DotKernel.values(dot_kernel)
   end
@@ -119,7 +119,7 @@ defmodule CRDT.DeltaAWORSet do
         }
       }
   """
-  @spec merge(t, t) :: t
+  @spec merge(t(), t()) :: t()
   def merge(
         %__MODULE__{dot_kernel: dot_kernel_a, delta: delta_a},
         %__MODULE__{dot_kernel: dot_kernel_b, delta: delta_b}
@@ -151,7 +151,7 @@ defmodule CRDT.DeltaAWORSet do
         }
       }
   """
-  @spec merge_delta(t, CRDT.DotKernel.t()) :: t
+  @spec merge_delta(t(), CRDT.DotKernel.t()) :: t()
   def merge_delta(%__MODULE__{dot_kernel: dot_kernel_a, delta: delta_a}, delta) do
     %__MODULE__{
       dot_kernel: CRDT.DotKernel.merge(dot_kernel_a, delta),

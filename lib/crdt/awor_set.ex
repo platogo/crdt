@@ -23,7 +23,7 @@ defmodule CRDT.AWORSet do
         }
       }
   """
-  @spec new() :: t
+  @spec new() :: t()
   def new, do: %__MODULE__{}
 
   @doc """
@@ -39,7 +39,7 @@ defmodule CRDT.AWORSet do
         }
       }
   """
-  @spec add(t, actor, value) :: t
+  @spec add(t(), actor(), value()) :: t()
   def add(%__MODULE__{dot_kernel: dot_kernel}, actor, value) do
     %__MODULE__{
       dot_kernel:
@@ -62,7 +62,7 @@ defmodule CRDT.AWORSet do
         }
       }
   """
-  @spec remove(t, value) :: t
+  @spec remove(t(), value()) :: t()
   def remove(%__MODULE__{dot_kernel: dot_kernel}, value) do
     %__MODULE__{dot_kernel: CRDT.DotKernel.remove(dot_kernel, value)}
   end

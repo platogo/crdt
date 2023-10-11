@@ -24,7 +24,7 @@ defmodule CRDT.DotKernel do
         entries: %{}
       }
   """
-  @spec new() :: t
+  @spec new() :: t()
   def new, do: %__MODULE__{}
 
   @doc """
@@ -53,7 +53,7 @@ defmodule CRDT.DotKernel do
         }
       }
   """
-  @spec add(t, actor, value) :: t
+  @spec add(t(), actor(), value()) :: t()
   def add(%__MODULE__{dot_context: dot_context, entries: entries}, actor, value) do
     {dot, dot_context} = CRDT.DotContext.next_dot(dot_context, actor)
 
@@ -63,7 +63,7 @@ defmodule CRDT.DotKernel do
     }
   end
 
-  @spec add({t, t}, actor, value) :: {t, t}
+  @spec add({t(), t()}, actor(), value()) :: {t(), t()}
   def add(
         {
           %__MODULE__{dot_context: dot_context, entries: entries},
@@ -115,7 +115,7 @@ defmodule CRDT.DotKernel do
         }
       }
   """
-  @spec remove(t, value) :: t
+  @spec remove(t(), value()) :: t()
   def remove(%__MODULE__{entries: entries} = dot_kernel, value) do
     entries =
       for {dot, entry_value} <- entries, entry_value == value, reduce: entries do
@@ -128,7 +128,7 @@ defmodule CRDT.DotKernel do
     %__MODULE__{dot_kernel | entries: entries}
   end
 
-  @spec remove({t, t}, value) :: {t, t}
+  @spec remove({t(), t()}, value()) :: {t(), t()}
   def remove(
         {
           %__MODULE__{entries: entries} = dot_kernel,
@@ -164,7 +164,7 @@ defmodule CRDT.DotKernel do
       ["value"]
 
   """
-  @spec values(t) :: list
+  @spec values(t()) :: list()
   def values(%__MODULE__{entries: entries}) do
     Map.values(entries)
   end
@@ -188,7 +188,7 @@ defmodule CRDT.DotKernel do
         entries: %{{:a, 1} => "value1"}
       }
   """
-  @spec merge(t, t) :: t
+  @spec merge(t(), t()) :: t()
   def merge(
         %__MODULE__{dot_context: dot_context_a, entries: entries_a},
         %__MODULE__{dot_context: dot_context_b, entries: entries_b}

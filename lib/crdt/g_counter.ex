@@ -17,7 +17,7 @@ defmodule CRDT.GCounter do
       iex> CRDT.GCounter.new()
       %CRDT.GCounter{value: %{}}
   """
-  @spec new() :: t
+  @spec new() :: t()
   def new, do: %__MODULE__{}
 
   @doc """
@@ -28,7 +28,7 @@ defmodule CRDT.GCounter do
       iex> CRDT.GCounter.new(a: 1, b: 2)
       %CRDT.GCounter{value: %{a: 1, b: 2}}
   """
-  @spec new([{actor, non_neg_integer}]) :: t
+  @spec new([{actor(), non_neg_integer()}]) :: t()
   def new(values) do
     %__MODULE__{value: Map.new(values)}
   end
@@ -43,7 +43,7 @@ defmodule CRDT.GCounter do
       ...> |> CRDT.GCounter.inc(:b, 2)
       %CRDT.GCounter{value: %{a: 1, b: 2}}
   """
-  @spec inc(t, actor, non_neg_integer) :: t
+  @spec inc(t(), actor(), non_neg_integer()) :: t()
   def inc(%__MODULE__{value: value}, actor, amount \\ 1) do
     %__MODULE__{value: Map.update(value, actor, amount, &(&1 + amount))}
   end
