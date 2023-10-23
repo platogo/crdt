@@ -1,5 +1,10 @@
 defmodule CRDT.DotContext do
-  @moduledoc false
+  @moduledoc """
+  A DotContext is a data structure that contains a version vector and a dot cloud.
+
+  The version vector is a map from actors to the maximum version of a dot that has been added to
+  the dot context on behalf of that actor.
+  """
 
   @type actor :: term
   @type version :: pos_integer

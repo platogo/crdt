@@ -1,5 +1,12 @@
 defmodule CRDT.DotKernel do
-  @moduledoc false
+  @moduledoc """
+  A DotKernel is a data structure that contains a DotContext and a map of dots to values.
+
+  The DotContext is a data structure that contains a version vector and a dot cloud.
+
+  The version vector is a map from actors to the maximum version of a dot that has been added to
+  the dot context on behalf of that actor.
+  """
 
   @type actor :: term
   @type version :: pos_integer

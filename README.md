@@ -1,6 +1,8 @@
 # CRDT
 
-**TODO: Add description**
+This is a set of basic, composable and extensible CRDTs.
+
+Please refer to the API Reference for usage documentation and examples.
 
 ## Installation
 

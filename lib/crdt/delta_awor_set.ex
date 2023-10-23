@@ -1,5 +1,12 @@
 defmodule CRDT.DeltaAWORSet do
-  @moduledoc false
+  @moduledoc """
+  A delta add-wins observed-remove set (DeltaAWORSet) is an opimized set that
+  allows adding and removing elements.
+
+  It is a variant of a 2P-Set that uses a DotKernel to track the additions and removals.
+  The delta variant optimizes the merge operation by only merging the delta of the
+  two sets.
+  """
 
   @type actor :: term
   @type value :: term

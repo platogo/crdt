@@ -1,5 +1,10 @@
 defmodule CRDT.AWORMap do
-  @moduledoc false
+  @moduledoc """
+  An add-wins observed-remove map (AWORMap) is a map of keys to CRDTs based on sets.
+
+  An AWORMap is a map of keys to CRDTs. It is a CRDT itself and can be used to
+  implement other CRDTs.
+  """
 
   @type t :: %__MODULE__{
           keys: CRDT.AWORSet.t(),

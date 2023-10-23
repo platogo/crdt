@@ -47,6 +47,9 @@ defmodule CRDT.LWWRegister do
 end
 
 defimpl CRDT, for: CRDT.LWWRegister do
+  @moduledoc """
+  Implements the CRDT behaviour for the LWWRegister
+  """
   @doc """
   Returns the value of the register
 

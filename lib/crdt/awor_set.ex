@@ -1,5 +1,10 @@
 defmodule CRDT.AWORSet do
-  @moduledoc false
+  @moduledoc """
+  An add-wins observed-remove set (AWORSet) is a set that allows adding and
+  removing elements.
+
+  It is a variant of a 2P-Set that uses a DotKernel to track the additions and removals.
+  """
 
   @type actor :: term
   @type value :: term
