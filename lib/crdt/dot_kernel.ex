@@ -128,7 +128,7 @@ defmodule CRDT.DotKernel do
       for {dot, entry_value} <- entries, entry_value == value, reduce: entries do
         entries ->
           # The corresponding dot says in the dot context and acts as a tombstone.
-          # So we can avoid readding it when merging with an out of date replica.
+          # So we can avoid reading it when merging with an out of date replica.
           Map.delete(entries, dot)
       end
 

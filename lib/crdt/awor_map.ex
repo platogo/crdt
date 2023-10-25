@@ -107,7 +107,7 @@ defmodule CRDT.AWORMap do
   def get(%__MODULE__{entries: entries}, key, default \\ nil), do: Map.get(entries, key, default)
 
   @doc """
-  Updates the `key` in the AWORMap with the the given function to the crdt on behalf of `actor`.
+  Updates the `key` in the AWORMap with the given function to the crdt on behalf of `actor`.
 
   If `key` is present in AWORMap then the existing crdt is passed to `fun` and its result is
   used as the updated crdt of `key`. If `key` is

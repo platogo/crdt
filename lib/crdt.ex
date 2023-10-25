@@ -2,7 +2,6 @@ defprotocol CRDT do
   @moduledoc """
   Protocol defining the interface for CRDTs.
 
-  For more information on CRDTs, see https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type
   """
 
   @type actor :: term()
