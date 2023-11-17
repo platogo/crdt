@@ -1,6 +1,7 @@
 defprotocol CRDT do
   @moduledoc """
   Protocol defining the interface for CRDTs.
+
   """
 
   @type actor :: term()
