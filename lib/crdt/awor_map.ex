@@ -169,6 +169,25 @@ defmodule CRDT.AWORMap do
 
     put(awor_map, actor, key, fun.(crdt))
   end
+
+  @doc """
+  Check if the `key` in the AWORMap is present.
+  Return true if the key is present, false otherwise.
+
+  ## Examples
+
+      iex> CRDT.AWORMap.new()
+      ...> |> CRDT.AWORMap.put(:a, :key, CRDT.GCounter.new())
+      ...> |> CRDT.AWORMap.has_key?(:key)
+      true
+
+      iex> CRDT.AWORMap.new()
+      ...> |> CRDT.AWORMap.put(:a, :key, CRDT.GCounter.new())
+      ...> |> CRDT.AWORMap.has_key?(:not_there)
+      false
+  """
+  @spec has_key?(t(), CRDT.key()) :: boolean
+  def has_key?(%__MODULE__{entries: entries}, key), do: Map.has_key?(entries, key)
 end
 
 defimpl CRDT.Access, for: CRDT.AWORMap do
