@@ -117,12 +117,12 @@ defmodule CRDT.AWORMap do
   ## Examples:
       iex> CRDT.AWORMap.new()
       ...> |> CRDT.AWORMap.put(:a, :key, CRDT.GCounter.new())
-      ...> |> CRDT.AWORMap.update(:a, :key, CRDT.GCounter.new(a: 5), &(CRDT.GCounter.inc(&1, :a)))
+      ...> |> CRDT.AWORMap.update(:a, :key, CRDT.GCounter.new(a: 5), &(CRDT.GCounter.increment(&1, :a)))
       ...> |> CRDT.value()
       %{key: 1}
 
       iex> CRDT.AWORMap.new()
-      ...> |> CRDT.AWORMap.update(:a, :key, CRDT.GCounter.new(a: 5), &(CRDT.GCounter.inc(&1, :a)))
+      ...> |> CRDT.AWORMap.update(:a, :key, CRDT.GCounter.new(a: 5), &(CRDT.GCounter.increment(&1, :a)))
       ...> |> CRDT.value()
       %{key: 5}
   """
@@ -153,12 +153,12 @@ defmodule CRDT.AWORMap do
 
       iex> CRDT.AWORMap.new()
       ...> |> CRDT.AWORMap.put(:a, :key, CRDT.GCounter.new())
-      ...> |> CRDT.AWORMap.update!(:a, :key, &(CRDT.GCounter.inc(&1, :a)))
+      ...> |> CRDT.AWORMap.update!(:a, :key, &(CRDT.GCounter.increment(&1, :a)))
       ...> |> CRDT.value()
       %{key: 1}
 
       iex> CRDT.AWORMap.new()
-      ...> |> CRDT.AWORMap.update!(:a, :key, &(CRDT.GCounter.inc(&1, :a)))
+      ...> |> CRDT.AWORMap.update!(:a, :key, &(CRDT.GCounter.increment(&1, :a)))
       ...> |> CRDT.value()
       ** (KeyError) key :key not found in: %{}
   """
@@ -256,19 +256,19 @@ defimpl CRDT.Access, for: CRDT.AWORMap do
       ...>   CRDT.AWORMap.new() |> CRDT.AWORMap.put(
       ...>     :actor, :key_b, CRDT.GCounter.new(a: 1)))
       ...> |> CRDT.Access.update_in(:actor, [:key_a, :key_b],
-      ...>     &(CRDT.GCounter.inc(&1, :a)))
+      ...>     &(CRDT.GCounter.increment(&1, :a)))
       ...> |> CRDT.value()
       %{key_a: %{key_b: 2}}
 
       iex> CRDT.AWORMap.new()
       ...> |> CRDT.Access.update_in(:actor, [:key_a, :key_b],
-      ...>     &(CRDT.GCounter.inc(&1, :a)))
+      ...>     &(CRDT.GCounter.increment(&1, :a)))
       ** (KeyError) key :key_a not found in: %{}
 
       iex> CRDT.AWORMap.new()
       ...> |> CRDT.AWORMap.put(:actor, :key_a, CRDT.AWORMap.new())
       ...> |> CRDT.Access.update_in(:actor, [:key_a, :key_b],
-      ...>     &(CRDT.GCounter.inc(&1, :a)))
+      ...>     &(CRDT.GCounter.increment(&1, :a)))
       ** (KeyError) key :key_b not found in: %{}
 
       iex> CRDT.AWORMap.new()
