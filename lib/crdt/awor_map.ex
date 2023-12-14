@@ -297,7 +297,7 @@ defimpl CRDT.Access, for: CRDT.AWORMap do
 
   def update_in(map, actor, [head | tail], fun)
       when is_function(fun, 1),
-      do: CRDT.AWORMap.update!(map, actor, head, &update_in(&1, actor, tail, fun))
+      do: CRDT.AWORMap.update!(map, actor, head, &CRDT.Access.update_in(&1, actor, tail, fun))
 end
 
 defimpl CRDT, for: CRDT.AWORMap do
