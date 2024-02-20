@@ -214,8 +214,8 @@ defimpl CRDT.Access, for: CRDT.AWORMap do
   def get_in(map, [head], default),
     do: CRDT.AWORMap.get(map, head, default)
 
-  def get_in(map, [head | tail], default),
-    do: get_in(CRDT.AWORMap.fetch!(map, head), tail, default)
+  def get_in(map, [head | tail], _default),
+    do: CRDT.Access.get_in(CRDT.AWORMap.fetch!(map, head), tail)
 
   @doc """
   Updates the value by recursively following the list of keys in a nested AWORMap
@@ -243,7 +243,13 @@ defimpl CRDT.Access, for: CRDT.AWORMap do
     do: CRDT.AWORMap.put(map, actor, head, crdt)
 
   def put_in(%module{entries: _entries} = map, actor, [head | tail], crdt),
-    do: CRDT.AWORMap.put(map, actor, head, put_in(module.fetch!(map, head), actor, tail, crdt))
+    do:
+      CRDT.AWORMap.put(
+        map,
+        actor,
+        head,
+        CRDT.Access.put_in(module.fetch!(map, head), actor, tail, crdt)
+      )
 
   @doc """
   Updates the key by recursively following the list of keys in the nested AWORMap
