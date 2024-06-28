@@ -7,6 +7,19 @@ see https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type
 
 Please refer to the API Reference for usage documentation and examples.
 
+## Table of Contents
+
+- [Installation](#installation)
+- [List of implemented CRDTs](#list-of-implemented-crdts)
+- [Usage](#usage)
+  - [GCounter](#crdt-gcounter)
+  - [PNCounter](#crdt-pncounter)
+  - [LWWRegister](#crdt-lwwregister)
+  - [AWORMap](#crdt-awormap)
+- [Known issues and limitations](#known-issues-and-limitations)
+- [Acknowledgments](#acknowledgments)
+- [License](#license)
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
@@ -34,7 +47,7 @@ CRDT Type  |  Commutative    |                        Convergent                
            +-----------------+-----------------------------------------------------------------+
 ```
 
-## Examples
+## Usage
 
 These are simple examples that should give an idea of how to use some of the data types,
 and what to expect in each case.
@@ -58,14 +71,14 @@ CRDT.value(counter) # => 15
 
 #### Incrementing
 
-Incrementing a `CRDT.GCounter` is done via the `CRDT.GCounter.inc/2` function.
+Incrementing a `CRDT.GCounter` is done via the `CRDT.GCounter.increment/2` function.
 If the actor key does not exist yet, it is assumed that the given value is the starting
 value.
 
 ``` elixir
 counter = CRDT.GCounter.new
-counter = counter |> CRDT.GCounter.inc(:a, 5) # => %CRDT.GCounter{value: %{a: 5}}
-counter = counter |> CRDT.GCounter.inc(:a, 2) # => %CRDT.GCounter{value: %{a: 7}}
+counter = counter |> CRDT.GCounter.increment(:a, 5) # => %CRDT.GCounter{value: %{a: 5}}
+counter = counter |> CRDT.GCounter.increment(:a, 2) # => %CRDT.GCounter{value: %{a: 7}}
 CRDT.value(counter) # => 7
 ```
 
@@ -234,3 +247,24 @@ map2 = CRDT.AWORMap.new |> CRDT.AWORMap.put(:a, :key2, CRDT.GCounter.new() |> CR
 merged_map = CRDT.merge(map1, map2)
 CRDT.value(merged_map) #=> %{key: 100}
 ```
+
+## Known issues and limitations
+
+- Development of δ-crdts is still work in progress.
+- [Remove](https://github.com/platogo/crdt/issues/8) operation in AWORSet gives unexpected results.
+
+## Acknowledgments
+
+Articles
+
+- Bartosz Sypytkowski series: [An introduction to state-based CRDTs](https://www.bartoszsypytkowski.com/the-state-of-a-state-based-crdts/)
+- [CRDT and order theory](https://www.youtube.com/watch?v=OOlnp2bZVRs) 
+
+Papers
+
+- Marc Shapiro original paper on [Conflict-free Replicated Data Types](https://inria.hal.science/hal-00932836/file/CRDTs_SSS-2011.pdf)
+
+## License
+[(Back to top)](#table-of-contents)
+
+The library is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
