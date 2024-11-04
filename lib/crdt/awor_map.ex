@@ -59,6 +59,31 @@ defmodule CRDT.AWORMap do
   end
 
   @doc """
+  Removes the given `crdt` under `key` in the AWORMap on behalf of `actor`.
+
+  ## Examples:
+
+      iex> CRDT.AWORMap.new() |> CRDT.AWORMap.put(:a, :key, CRDT.GCounter.new())
+      ...> |> CRDT.AWORMap.remove(:key)
+      %CRDT.AWORMap{
+        keys: %CRDT.AWORSet{
+          dot_kernel: %CRDT.DotKernel{
+            dot_context: %CRDT.DotContext{version_vector: %{a: 1}, dot_cloud: []},
+            entries: %{}
+          }
+        },
+        entries: %{}
+      }
+  """
+  @spec remove(t(), CRDT.key()) :: t()
+  def remove(%__MODULE__{keys: keys, entries: entries}, key) do
+    %__MODULE__{
+      keys: CRDT.AWORSet.remove(keys, key),
+      entries: Map.delete(entries, key)
+    }
+  end
+
+  @doc """
   Fetches the crdt for the given `key` from the AWORMap.
 
   ## Examples:
