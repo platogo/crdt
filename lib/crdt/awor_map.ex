@@ -59,7 +59,7 @@ defmodule CRDT.AWORMap do
   end
 
   @doc """
-  Removes the given `crdt` under `key` in the AWORMap on behalf of `actor`.
+  Removes the given `crdt` under `key` in the AWORMap.
 
   ## Examples:
 
