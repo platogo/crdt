@@ -12,9 +12,10 @@ Please refer to the API Reference for usage documentation and examples.
 - [Installation](#installation)
 - [List of implemented CRDTs](#list-of-implemented-crdts)
 - [Usage](#usage)
-  - [GCounter](#crdt-gcounter)
-  - [PNCounter](#crdt-pncounter)
-  - [LWWRegister](#crdt-lwwregister)
+  - [GCounter](#crdtgcounter)
+  - [PNCounter](#crdtpncounter)
+  - [LWWRegister](#crdtlwwregister)
+  - [MaxRegister](#crdtmaxregister)
   - [AWORMap](#crdt-awormap)
 - [Known issues and limitations](#known-issues-and-limitations)
 - [Acknowledgments](#acknowledgments)
@@ -157,7 +158,7 @@ When initialized without starting values, the `CRDT.LWWRegister` initial value i
 
 ``` elixir
 register = CRDT.LWWRegister.new #=> %CRDT.LWWRegister{value: nil, timestamp: 1698400752943930708}
-CRDT.value(counter) #=> nil
+CRDT.value(register) #=> nil
 ```
 
 #### Updating
@@ -180,6 +181,43 @@ register1 = CRDT.LWWRegister.new |> CRDT.LWWRegister.set("hello")
 register2 = CRDT.LWWRegister.new |> CRDT.LWWRegister.set("latest_hello")
 merged = CRDT.merge(register1, register2)
 CRDT.value(merged) # => "latest_hello"
+```
+
+### `CRDT.MaxRegister`
+
+A `CRDT.MaxRegister` is a crdt used when we are interested in having the most recent information available. It stores single value without a timestamp and uses max function for conflict resolution e.g.
+
+$\max(7,8) = 8$
+
+#### Initializing
+
+When initialized without starting values, the `CRDT.MaxRegister` initial value is '0'.
+
+``` elixir
+register = CRDT.MaxRegister.new #=> %CRDT.MaxRegister{value: 0}
+CRDT.value(register) #=> 0
+```
+
+#### Updating
+
+Updating a `CRDT.MaxRegister` is done via the `CRDT.MaxRegister.set/2` function.
+This will update the value with the current system time.
+
+``` elixir
+register = CRDT.MaxRegister.new
+register = register |> CRDT.MaxRegister.update(12) # => %CRDT.MaxRegister{value: 12}
+CRDT.value(register) # => 12
+```
+
+#### Merging
+
+Merging two MaxRegister will simply take the most recent value.
+
+``` elixir
+register1 = CRDT.MaxRegister.new |> CRDT.MaxRegister.update(12)
+register2 = CRDT.MaxRegister.new |> CRDT.MaxRegister.update(56)
+merged = CRDT.merge(register1, register2)
+CRDT.value(merged) # => 56
 ```
 
 ### `CRDT.AWORMap`
