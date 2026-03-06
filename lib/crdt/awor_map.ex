@@ -377,9 +377,6 @@ defimpl CRDT, for: CRDT.AWORMap do
 
             {%{}, %{^key => crdt_b}} ->
               Map.put(entries, key, crdt_b)
-
-            {%{}, %{}} ->
-              entries
           end
       end
 
