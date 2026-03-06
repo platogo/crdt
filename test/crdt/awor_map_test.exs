@@ -26,10 +26,8 @@ defmodule CRDT.AWORMapTest do
       end
     end
 
-    test "Access.get_in/2 raises on missing key" do
-      assert_raise KeyError, fn ->
-        CRDT.AWORMap.new() |> CRDT.Access.get_in([:key_a, :key_b])
-      end
+    test "Access.get_in/2 returns nil on missing key" do
+      assert CRDT.AWORMap.new() |> CRDT.Access.get_in([:key_a, :key_b]) == nil
     end
 
     test "Access.put_in/4 raises on missing key" do

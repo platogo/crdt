@@ -219,6 +219,11 @@ defimpl CRDT.Access, for: CRDT.AWORMap do
       ...>     :actor, :key_b, CRDT.GCounter.new(a: 1)))
       ...> |> CRDT.Access.get_in([:key_a, :key_b])
       %CRDT.GCounter{value: %{a: 1}}
+
+      iex> CRDT.AWORMap.new()
+      ...> |> CRDT.AWORMap.put(:actor, :key_a, CRDT.GCounter.new(a: 1))
+      ...> |> CRDT.Access.get_in([:missing, :key_b])
+      nil
   """
   @spec get_in(CRDT.AWORMap.t(), nonempty_list(term), CRDT.crdt() | nil) :: CRDT.crdt() | nil
   def get_in(map, list, default \\ nil)
@@ -226,8 +231,12 @@ defimpl CRDT.Access, for: CRDT.AWORMap do
   def get_in(map, [head], default),
     do: CRDT.AWORMap.get(map, head, default)
 
-  def get_in(map, [head | tail], _default),
-    do: CRDT.Access.get_in(CRDT.AWORMap.fetch!(map, head), tail)
+  def get_in(map, [head | tail], default) do
+    case CRDT.AWORMap.fetch(map, head) do
+      {:ok, value} -> CRDT.Access.get_in(value, tail)
+      :error -> default
+    end
+  end
 
   @doc """
   Updates the value by recursively following the list of keys in a nested AWORMap
