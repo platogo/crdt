@@ -15,6 +15,7 @@ Please refer to the API Reference for usage documentation and examples.
   - [GCounter](#crdt-gcounter)
   - [PNCounter](#crdt-pncounter)
   - [LWWRegister](#crdt-lwwregister)
+  - [AWORSet](#crdt-aworset)
   - [AWORMap](#crdt-awormap)
 - [Known issues and limitations](#known-issues-and-limitations)
 - [Acknowledgments](#acknowledgments)
@@ -39,13 +40,9 @@ be found at <https://hexdocs.pm/crdt>.
 
 ## List of implemented CRDTs
 
-```
-           +----------------++---------++-----------++------------++---------++----------------+
-Data Type  |  LWW-Register  || AWORSet || G-Counter || PN-Counter || AWORMap || Delta-AWORSet  |
-           +----------------++---------++-----------++------------++---------++----------------+
-CRDT Type  |  Commutative    |                        Convergent                               |
-           +-----------------+-----------------------------------------------------------------+
-```
+| Data Type | LWW-Register | AWORSet | GCounter | PNCounter | AWORMap | Delta-AWORSet |
+|-----------|:---:|:---:|:---:|:---:|:---:|:---:|
+| **CRDT Type** | Commutative | Convergent | Convergent | Convergent | Convergent | Convergent |
 
 ## Usage
 
@@ -71,14 +68,14 @@ CRDT.value(counter) # => 15
 
 #### Incrementing
 
-Incrementing a `CRDT.GCounter` is done via the `CRDT.GCounter.increment/2` function.
+Incrementing a `CRDT.GCounter` is done via the `CRDT.GCounter.incrementrement/2` function.
 If the actor key does not exist yet, it is assumed that the given value is the starting
 value.
 
 ``` elixir
 counter = CRDT.GCounter.new
-counter = counter |> CRDT.GCounter.increment(:a, 5) # => %CRDT.GCounter{value: %{a: 5}}
-counter = counter |> CRDT.GCounter.increment(:a, 2) # => %CRDT.GCounter{value: %{a: 7}}
+counter = counter |> CRDT.GCounter.incrementrement(:a, 5) # => %CRDT.GCounter{value: %{a: 5}}
+counter = counter |> CRDT.GCounter.incrementrement(:a, 2) # => %CRDT.GCounter{value: %{a: 7}}
 CRDT.value(counter) # => 7
 ```
 
@@ -119,14 +116,14 @@ If no value is given, it will be updated by 1 by default.
 
 ``` elixir
 pncounter = CRDT.PNCounter.new
-pncounter = pncounter |> CRDT.PNCounter.increment(:a, 5) # => %CRDT.PNCounter{pos: %{a: 2}, neg: %{}}
-pncounter = pncounter |> CRDT.PNCounter.increment(:a, 2) # => %CRDT.PNCounter{pos: %{a: 4}, neg: %{}}
+pncounter = pncounter |> CRDT.PNCounter.increment(:a, 5) # => %CRDT.PNCounter{pos: %{a: 5}, neg: %{}}
+pncounter = pncounter |> CRDT.PNCounter.increment(:a, 2) # => %CRDT.PNCounter{pos: %{a: 7}, neg: %{}}
 CRDT.value(pncounter) # => 7
 ```
 
 #### Decrementing
 Decrementing a `CRDT.PNCounter` is done via the `CRDT.PNCounter.decrement/3` function.
-Incrementing a pncounter will update only the `neg` actor => value map.
+Decrementing a pncounter will update only the `neg` actor => value map.
 If no value is given, it will be updated by 1 by default.
 
 ``` elixir
@@ -137,18 +134,18 @@ CRDT.value(pncounter) # => -7
 ```
 
 #### Merging
-Merging two PNCounters preserves all actors in both, taking the total sum of all positive and negative values.
+Merging two PNCounters preserves all actors in both, taking the higher value per actor for both positive and negative maps.
 
 ``` elixir
-pncounter1 = CRDT.PNCounter.new |> CRDT.PNCounter.increment(actor1: 5, actor2: 3)
-pncounter2 = CRDT.PNCounter.new |> CRDT.PNCounter.decrement(actor1: 5, actor3: 3)
-merged = CRDT.merge(pncounter1, pncounter2) # => %CRDT.PNCounter{value: %{actor1: 5, actor2: 3, actor3: 8}}
+pncounter1 = CRDT.PNCounter.new |> CRDT.PNCounter.increment(:a, 5)
+pncounter2 = CRDT.PNCounter.new |> CRDT.PNCounter.decrement(:a, 5)
+merged = CRDT.merge(pncounter1, pncounter2)
 CRDT.value(merged) # => 0
 ```
 
 ### `CRDT.LWWRegister`
 
-A `CRDT.LWWRegister` is a crdt used when we are interested in having the most recent information available (Least Write Wins).
+A `CRDT.LWWRegister` is a crdt used when we are interested in having the most recent information available (Last Write Wins).
 It contains a value and the corresponding timestamp.
 
 #### Initializing
@@ -157,7 +154,7 @@ When initialized without starting values, the `CRDT.LWWRegister` initial value i
 
 ``` elixir
 register = CRDT.LWWRegister.new #=> %CRDT.LWWRegister{value: nil, timestamp: 1698400752943930708}
-CRDT.value(counter) #=> nil
+CRDT.value(register) #=> nil
 ```
 
 #### Updating
@@ -180,6 +177,33 @@ register1 = CRDT.LWWRegister.new |> CRDT.LWWRegister.set("hello")
 register2 = CRDT.LWWRegister.new |> CRDT.LWWRegister.set("latest_hello")
 merged = CRDT.merge(register1, register2)
 CRDT.value(merged) # => "latest_hello"
+```
+
+### `CRDT.AWORSet`
+
+A `CRDT.AWORSet` is an add-wins observed-remove set. It supports adding and removing elements,
+with concurrent add and remove of the same element resolving in favor of the add.
+
+#### Adding and removing
+
+``` elixir
+set = CRDT.AWORSet.new
+set = set |> CRDT.AWORSet.add(:a, "hello")
+CRDT.value(set) # => ["hello"]
+
+set = set |> CRDT.AWORSet.remove("hello")
+CRDT.value(set) # => []
+```
+
+#### Merging
+
+When two replicas concurrently add and remove the same element, the add wins.
+
+``` elixir
+set1 = CRDT.AWORSet.new |> CRDT.AWORSet.add(:a, "hello")
+set2 = CRDT.AWORSet.new |> CRDT.AWORSet.add(:b, "world")
+merged = CRDT.merge(set1, set2)
+CRDT.value(merged) # => ["hello", "world"]
 ```
 
 ### `CRDT.AWORMap`
@@ -227,9 +251,9 @@ It's possible to pass a function as an argument that will be applied as the upda
 
 ``` elixir
 map = CRDT.AWORMap.new
-map = map |> CRDT.AWORMap.put(:a, :key, CRDT.GCounter.new() |> CRDT.GCounter.inc(:a, 1))
+map = map |> CRDT.AWORMap.put(:a, :key, CRDT.GCounter.new() |> CRDT.GCounter.increment(:a, 1))
 CRDT.value(map) #=> %{key: 1}
-map = map |> CRDT.AWORMap.update!(:a, :key, &(CRDT.GCounter.inc(&1, :a, 100)))
+map = map |> CRDT.AWORMap.update!(:a, :key, &(CRDT.GCounter.increment(&1, :a, 100)))
 CRDT.value(map) #=> %{key: 101}
 ```
 
@@ -242,16 +266,22 @@ CRDT.value(map) #=> %{key: 101}
 Merging two AWORMaps uses the same merge strategies as their crdts stored inside them.
 
 ``` elixir
-map1 = CRDT.AWORMap.new |> CRDT.AWORMap.put(:a, :key, CRDT.GCounter.new() |> CRDT.GCounter.inc(:a, 1))
-map2 = CRDT.AWORMap.new |> CRDT.AWORMap.put(:a, :key2, CRDT.GCounter.new() |> CRDT.GCounter.inc(:a, 100))
+map1 = CRDT.AWORMap.new |> CRDT.AWORMap.put(:a, :key, CRDT.GCounter.new() |> CRDT.GCounter.increment(:a, 1))
+map2 = CRDT.AWORMap.new |> CRDT.AWORMap.put(:b, :key2, CRDT.GCounter.new() |> CRDT.GCounter.increment(:b, 100))
 merged_map = CRDT.merge(map1, map2)
-CRDT.value(merged_map) #=> %{key: 100}
+CRDT.value(merged_map) #=> %{key: 1, key2: 100}
 ```
 
 ## Known issues and limitations
 
 - Development of δ-crdts is still work in progress.
 - [Remove](https://github.com/platogo/crdt/issues/8) operation in AWORSet gives unexpected results.
+- **AWORMap value resurrection on remove + re-add:** The entries in an AWORMap do not participate in the causal context. If a key is removed and re-added with a fresh CRDT value, merging with a stale replica that still holds the old value will resurrect the old value (because CRDT merges are union-like). This is a known limitation of this OR-Map design. The proper fix requires values to participate in the dot-based causal context recursively, as described in Almeida et al., "Delta State Replicated Data Types" (2018).
+
+## Potential performance improvements
+
+- **DotContext `dot_cloud` is a list**, making `contains?/2` O(n) for cloud lookups. Using a `MapSet` would give O(1) lookups. In practice `compress/0` keeps the cloud small, but under heavy concurrent operations with gaps the cloud can grow.
+- **DotKernel `remove/2` scans all entries by value** (O(n)). For large sets, a reverse index from values to dots would be more efficient.
 
 ## Acknowledgments
 
@@ -265,6 +295,7 @@ Papers
 - Marc Shapiro original paper on [Conflict-free Replicated Data Types](https://inria.hal.science/hal-00932836/file/CRDTs_SSS-2011.pdf)
 
 ## License
-[(Back to top)](#table-of-contents)
 
 The library is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+
+[(Back to top)](#table-of-contents)

@@ -85,7 +85,7 @@ defmodule CRDT.DotContext do
   end
 
   @doc """
-  Compresses `dot_context` by removing dots from the dot cloud that are part of the contignuous
+  Compresses `dot_context` by removing dots from the dot cloud that are part of the contiguous
   sequence of dots encoded in the version vector.
 
   ## Examples

@@ -177,7 +177,7 @@ defmodule CRDT.DotKernel do
   end
 
   @doc """
-  Merges two DotContexts.
+  Merges two DotKernels.
 
   ## Examples
 
