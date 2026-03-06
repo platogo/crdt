@@ -34,5 +34,41 @@ defmodule CRDT.AWORSetTest do
       merged_reverse = CRDT.merge(b, a) |> CRDT.value() |> Enum.sort()
       assert merged_reverse == [1, 3]
     end
+
+    test "both replicas remove the same element — stays removed" do
+      common =
+        CRDT.AWORSet.new()
+        |> CRDT.AWORSet.add(:a, 1)
+        |> CRDT.AWORSet.add(:b, 2)
+
+      a = CRDT.AWORSet.remove(common, 1)
+      b = CRDT.AWORSet.remove(common, 1)
+
+      merged = CRDT.merge(a, b) |> CRDT.value() |> Enum.sort()
+      assert merged == [2]
+    end
+  end
+
+  describe "merge properties" do
+    test "idempotent — merge(a, a) produces same value as a" do
+      a =
+        CRDT.AWORSet.new()
+        |> CRDT.AWORSet.add(:a, 1)
+        |> CRDT.AWORSet.add(:a, 2)
+        |> CRDT.AWORSet.remove(1)
+
+      assert CRDT.merge(a, a) |> CRDT.value() |> Enum.sort() ==
+               a |> CRDT.value() |> Enum.sort()
+    end
+
+    test "associative — merge(merge(a, b), c) == merge(a, merge(b, c))" do
+      a = CRDT.AWORSet.new() |> CRDT.AWORSet.add(:a, 1)
+      b = CRDT.AWORSet.new() |> CRDT.AWORSet.add(:b, 2)
+      c = CRDT.AWORSet.new() |> CRDT.AWORSet.add(:c, 3)
+
+      left = CRDT.merge(CRDT.merge(a, b), c) |> CRDT.value() |> Enum.sort()
+      right = CRDT.merge(a, CRDT.merge(b, c)) |> CRDT.value() |> Enum.sort()
+      assert left == right
+    end
   end
 end
